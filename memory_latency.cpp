@@ -5,6 +5,8 @@
 
 #define GALOIS_POLYNOMIAL ((1ULL << 63) | (1ULL << 62) | (1ULL << 60) | (1ULL << 59))
 
+#define NANOESOND_IN_SCEOND 1000000
+
 /**
  * Converts the struct timespec to time in nano-seconds.
  * @param t - the struct timespec to convert.
@@ -13,6 +15,9 @@
 uint64_t nanosectime(struct timespec t)
 {
 	// Your code here
+    uint64_t ret = t.tv_sec * NANOESOND_IN_SCEOND;
+    ret += t.tv_nsec;
+    return ret;
 }
 
 /**
