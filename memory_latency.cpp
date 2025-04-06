@@ -14,7 +14,7 @@
  */
 uint64_t nanosectime(struct timespec t)
 {
-	// Your code here
+	//function works correctly for times up to ~584 years
     uint64_t ret = t.tv_sec * NANOESOND_IN_SCEOND;
     ret += t.tv_nsec;
     return ret;
