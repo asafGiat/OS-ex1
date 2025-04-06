@@ -1,5 +1,8 @@
 // OS 2025 EX1
 
+#include <stdbool.h>
+#include <ctype.h>
+
 #include "memory_latency.h"
 #include "measure.h"
 
@@ -36,6 +39,9 @@ struct measurement measure_sequential_latency(uint64_t repeat, array_element_t* 
     // Your code here
 }
 
+
+bool validate_args(int argc, char *argv[]); //helper function
+
 /**
  * Runs the logic of the memory_latency program. Measures the access latency for random and sequential memory access
  * patterns.
@@ -58,4 +64,64 @@ int main(int argc, char* argv[])
     const uint64_t zero = nanosectime(t_dummy)>1000000000ull?0:nanosectime(t_dummy);
 
     // Your code here
+    if (!validate_args(argc, argv)) {
+        return EXIT_FAILURE;
+    }
+    int max_size = atoi(argv[1]);
+    int factor   = atoi(argv[2]);
+    int repeat   = atoi(argv[3]);
+
+    for(int i=1; i<max_size; i*=factor)
+    {
+        array_element_t* arr = (array_element_t*)malloc(i);
+        if(!arr)
+        {
+            fprintf(stderr, "Allocation error\n");
+            return 1;
+        }
+        measurement result = measure_latency(repeat, arr, i, zero);
+        measurement seq_result = measure_sequential_latency(repeat, arr, i, zero);
+        int offset = result.access_time - result.baseline;
+        int offset_sequential = seq_result.access_time - seq_result.baseline;
+        printf("%d,%d,%d", i, result, offset, offset_sequential);
+        free(arr);
+    }
+    return 0;
 }
+
+bool is_positive_integer(const char *str) {
+    if (str == NULL || *str == '\0') return false;
+    while (*str) {
+        if (!isdigit(*str)) return false;
+        str++;
+    }
+    return true;
+}
+
+bool validate_args(int argc, char *argv[]) {
+    if (argc != 4) {
+        fprintf(stderr, "Usage: %s max_size factor repeat\n", argv[0]);
+        return false;
+    }
+
+    if (!is_positive_integer(argv[1]) || !is_positive_integer(argv[2]) || !is_positive_integer(argv[3])) {
+        fprintf(stderr, "All arguments must be positive integers.\n");
+        return false;
+    }
+
+    int max_size = atoi(argv[1]);
+    int factor   = atoi(argv[2]);
+    int repeat   = atoi(argv[3]);
+
+    if (max_size <= 0 || factor <= 1 || repeat <= 0) {
+        fprintf(stderr,
+            "Invalid values:\n"
+            "- max_size must be > 0\n"
+            "- factor must be > 1\n"
+            "- repeat must be > 0\n");
+        return false;
+    }
+
+    return true;
+}
+
